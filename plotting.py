@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from ridge_map import RidgeMap, FontManager
+from ridge_map_local import RidgeMap, FontManager
 
 def create_map(style_dict, coord_bl, coord_tr):
     #define variable values depending on input

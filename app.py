@@ -5,10 +5,8 @@ from streamlit_folium import st_folium
 from streamlit_image_select import image_select
 import json
 
-#import geopandas as gpd
-#from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
-from ridge_map import RidgeMap, FontManager
+#from ridge_map_local import RidgeMap, FontManager
 from plotting import create_map
 
 #========= Page config
@@ -46,6 +44,7 @@ Draw(draw_options={
                 "polygon":False
             }).add_to(m)
 
+
 map_selection = st_folium(m, width=800, height=450)
 if map_selection["last_active_drawing"]!= None:
     bl = map_selection["last_active_drawing"]["geometry"]['coordinates'][0][0]
@@ -65,6 +64,10 @@ style_id = image_select(
     return_value ="index",
     key="style_selected"
 )
+
+#st.session_state.previous_style_selected = st.session_state.style_selected
+
+st.markdown(st.session_state.style_selected)
 style_selected = map_styles[captions[style_id]]
 
 # ========== Customise map
@@ -114,7 +117,7 @@ with st.form(key="Create map"):
         with col7:
             style_custom["num_lines"] = st.slider("Number of lines", min_value=30, max_value=150, value=style_selected["num_lines"])
         with col8:
-            style_custom["linewidth"] = st.slider("Linewidth", min_value=1, max_value=6, value=style_selected["linewidth"])
+            style_custom["linewidth"] = st.slider("Linewidth", min_value=1, max_value=10, value=style_selected["linewidth"])
         with col9:
             style_custom["line_color"] = st.color_picker('Colour', style_selected["line_color"], key=3)
         col10,col11,col12,col13 = st.columns([1,1,1,1], gap="small")
@@ -135,8 +138,8 @@ st.markdown('Your ridgemap design! :point_down: :tada:')
 #map updates
 if "update_map" not in st.session_state:
     st.session_state.update_map = False
-if (st.session_state.style_selected) & (button_update_map==False):
-   st.session_state.update_map = False
+#if (st.session_state.style_selected==True) & (button_update_map==False):
+  # st.session_state.update_map = False
 if button_update_map:
     st.session_state.update_map = True
 
@@ -158,19 +161,19 @@ else:
     fig = "None" 
 
 #export image
-if fig != "None":
-    plt.savefig("ridgemaps.png", bbox_inches="tight", dpi=300, pad_inches=0, transparent=style["bg_transparent"])
-    with open("ridgemaps.png", "rb") as image:
-        png = st.download_button(
-            label="Download png",
-            data=image,
-            file_name="ridgemap.png",
-            mime="image/png"
-        )
-    plt.savefig("ridgemaps.svg", bbox_inches="tight", pad_inches=0)
-    with open("ridgemaps.svg", "rb") as svg:
-        svg = st.download_button(
-            label="Download svg",
-            data=svg,
-            file_name="ridgemaps.svg"
-        )
+#if fig != "None":
+#    plt.savefig("ridgemaps.png", bbox_inches="tight", dpi=300, pad_inches=0, transparent=style["bg_transparent"])
+#    with open("ridgemaps.png", "rb") as image:
+#        png = st.download_button(
+#            label="Download png",
+#            data=image,
+#            file_name="ridgemap.png",
+#            mime="image/png"
+#        )
+#    plt.savefig("ridgemaps.svg", bbox_inches="tight", pad_inches=0)
+ #   with open("ridgemaps.svg", "rb") as svg:
+  #      svg = st.download_button(
+   #         label="Download svg",
+    #        data=svg,
+     #       file_name="ridgemaps.svg"
+      #  )
