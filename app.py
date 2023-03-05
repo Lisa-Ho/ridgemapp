@@ -67,7 +67,7 @@ style_id = image_select(
 
 #st.session_state.previous_style_selected = st.session_state.style_selected
 
-st.markdown(st.session_state.style_selected)
+#st.markdown(st.session_state.style_selected)
 style_selected = map_styles[captions[style_id]]
 
 # ========== Customise map
