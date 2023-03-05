@@ -161,19 +161,19 @@ else:
     fig = "None" 
 
 #export image
-#if fig != "None":
-#    plt.savefig("ridgemaps.png", bbox_inches="tight", dpi=300, pad_inches=0, transparent=style["bg_transparent"])
-#    with open("ridgemaps.png", "rb") as image:
-#        png = st.download_button(
-#            label="Download png",
-#            data=image,
-#            file_name="ridgemap.png",
-#            mime="image/png"
-#        )
-#    plt.savefig("ridgemaps.svg", bbox_inches="tight", pad_inches=0)
- #   with open("ridgemaps.svg", "rb") as svg:
-  #      svg = st.download_button(
-   #         label="Download svg",
-    #        data=svg,
-     #       file_name="ridgemaps.svg"
-      #  )
+if fig != "None":
+    plt.savefig("ridgemaps.png", bbox_inches="tight", dpi=300, pad_inches=0, transparent=style["bg_transparent"])
+    with open("ridgemaps.png", "rb") as image:
+        png = st.download_button(
+            label="Download png",
+            data=image,
+            file_name="ridgemap.png",
+            mime="image/png"
+        )
+    plt.savefig("ridgemaps.svg", bbox_inches="tight", pad_inches=0)
+    with open("ridgemaps.svg", "rb") as svg:
+        svg = st.download_button(
+            label="Download svg",
+            data=svg,
+            file_name="ridgemaps.svg"
+        )
