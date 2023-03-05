@@ -1,5 +1,5 @@
 #requirements for streamlit app
-matplotlib==3.2.2
+matplotlib
 folium==0.13.0
 streamlit==1.17.0
 streamlit-folium==0.11.0
