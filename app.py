@@ -1,6 +1,15 @@
+
+import streamlit as st
+
+st.set_page_config(
+    page_title="ridgemapp",
+    page_icon="🖼️",
+    initial_sidebar_state="collapsed"
+    #layout="wide",
+     )
+
 import folium
 from folium.plugins import Draw
-import streamlit as st
 from streamlit_folium import st_folium
 from streamlit_image_select import image_select
 import json
@@ -9,53 +18,55 @@ import matplotlib.pyplot as plt
 #from ridge_map_local import RidgeMap, FontManager
 from plotting import create_map
 
-#========= Page config
-st.set_page_config(
-    page_title="ridgemapp",
-    page_icon="🖼️",
-    initial_sidebar_state="collapsed"
-    #layout="wide",
-     )
-
-#load example styles
+#load predefined styles stored in json file
 with open('map_styles.json', 'r') as json_file:
     map_styles = json.load(json_file)
+
 
 #========== APP
 
 st.title('ridgemapp')
-st.markdown("### Create elevation maps in no time")
-st.markdown("**Select area > Chose style > Customise > Download > Print and share**")
+st.markdown("### Create elevation map designs in no time")
+st.markdown("**Select area > Chose style > Customise > Download > Edit, print or share**")
 st.markdown("""---""") 
 
 #========== Sidebar
 
 
 # ========= Make selection
-# Draw rectangle on map and get coordinates to use
+# Write user instructions
 st.markdown('Draw an rectangle on the map to select area')
+
+#initiate folium map and set all draw options to false except rectangle
 m = folium.Map()
 Draw(draw_options={
-                "polyline": False,
                 "rectangle": True,
+                "polyline": False,
                 "circle": False,
                 "circlemarker": False,
                 "marker":False,
                 "polygon":False
             }).add_to(m)
 
-
+#draw map on screen
 map_selection = st_folium(m, width=800, height=450)
+
+#store coordinates from latest rectangle to use later
 if map_selection["last_active_drawing"]!= None:
     bl = map_selection["last_active_drawing"]["geometry"]['coordinates'][0][0]
     tr = map_selection["last_active_drawing"]["geometry"]['coordinates'][0][2]
 
 #=========== Select style from image
-st.markdown('Select a style')
+#write user instructions
+st.markdown('Select a starter style')
+
+#provide a caption for each style
 captions=["Dark", "Transparent", "Comic", "Flat"]
+
+#display images (images are saved in "examples" folder)
 style_id = image_select(
     label="",
-    images=[ "examples/dark.png",
+    images=["examples/dark.png",
         "examples/transparent.png",
         "examples/comic.png",
         "examples/flat.png"],
@@ -66,8 +77,9 @@ style_id = image_select(
 )
 
 #st.session_state.previous_style_selected = st.session_state.style_selected
-
 #st.markdown(st.session_state.style_selected)
+
+#get values for selected style using the returned index
 style_selected = map_styles[captions[style_id]]
 
 # ========== Customise map
@@ -79,13 +91,13 @@ fig_shapes = ["square", "rectangle"]
 
 with st.form(key="Create map"):
     style_custom = {}
-    st.markdown("Customise map style")
+    st.markdown("Customise style")
     col1, col2 = st.columns([2,1], gap="medium")
     with col1:
         style_custom["title"] = st.text_input("Title (optional)", style_selected["title"])
     with col2:
         style_custom["fig_shape"] = st.selectbox('Shape',options=fig_shapes,index=fig_shapes.index(style_selected["fig_shape"]) )
-    with st.expander("More style options"):
+    with st.expander("Change colours, lines and more"):
         st.markdown("**Background**")
         col3a, col3b, col3c = st.columns([1,1,2], gap="small")
         with col3a:
