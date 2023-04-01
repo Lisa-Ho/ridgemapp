@@ -17,7 +17,7 @@ def create_map(style_dict, coord_bl, coord_tr):
     fig.set_facecolor(style_dict["bg_color"])
     
     #elevation lines
-    rm = RidgeMap(coord_bl + coord_tr, font = "Ubuntu")
+    rm = RidgeMap(coord_bl + coord_tr, font = "Arial")
     values = rm.get_elevation_data(num_lines=style_dict["num_lines"], elevation_pts=style_dict["elevation_pts"])
     ridges = rm.plot_map(values=rm.preprocess(values=values, vertical_ratio=style_dict["vertical_ratio"], 
                                               water_ntile=style_dict["water_ntile"], lake_flatness=style_dict["lake_flatness"]), 
