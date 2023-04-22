@@ -8,17 +8,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
     )
 
-import folium
-from folium.plugins import Draw
 from streamlit_folium import st_folium
 from streamlit_image_select import image_select
 import json
 import matplotlib.pyplot as plt
 from plotting import create_map
+from folium_map_render import *
 
 #load predefined styles stored in json file
 with open('map_styles.json', 'r') as json_file:
     map_styles = json.load(json_file)
+
+# Initialise states
+if "initialise_map" not in st.session_state:
+    st.session_state.initialise_map = True
+
+if "area_drawn" not in st.session_state:
+    st.session_state.area_drawn = False
+
+if "disabled" not in st.session_state:
+    st.session_state.disabled = False
+
+if "map_data" not in st.session_state:
+    st.session_state.map_data = None
+
+# disable set area button after it is clicked
+def disable():
+    st.session_state.disabled = True
 
 #=== Sidebar
 with st.sidebar:
@@ -41,102 +57,51 @@ st.markdown("### Create stunning elevation maps")
 st.markdown("")
 
 # ========= Make selection
-#initialise folium map and set all draw options to false except rectangle
-def initialise_folium_map():    
-    m = folium.Map()
-    Draw(draw_options={
-                "rectangle": True,
-                "polyline": False, 
-                "circle": False,
-                "circlemarker": False,
-                "marker":False,
-                "polygon":False
-            }).add_to(m)
-    return m
+#interactive folium map and set all draw options to false except rectangle
 
+# User instructions and buttons
+st.markdown('Draw a ◼️ rectangle on the map. Click `Set area` to create ridge map or `reset` to draw again.')
 
-#generate static map with no input options
-def static_folium_map(initial_map):
-    m = folium.Map(location=[initial_map["center"]["lat"], initial_map["center"]["lng"]],
-               zoom_start=initial_map["zoom"],
-               zoom_control=False,
-               scrollWheelZoom=False,
-               dragging=False)
-    folium.GeoJson(initial_map["last_active_drawing"]).add_to(m)
-    return m
-#m(zoom_control=False)
+col0a, col0b,col0 = st.columns([1,1,5], gap="small")
+with col0b:
+    button_reset = st.button('Reset')
+if button_reset:
+    st.session_state.initialise_map = True
+    st.session_state.area_drawn = False
+    st.session_state.disabled = False
 
-# User instructions
-st.markdown('Draw an rectangle ◼️ on the map to select area. Click `reset` to draw again.')
+with col0a:
+    button_set_area = st.button('Set area', on_click=disable, disabled=st.session_state.disabled)
 
-# create container to hold the map and reset button above
-button_reset_folium_map = st.button('Reset')
+if button_set_area == True:
+    st.session_state.initialise_map = False
+    st.session_state.area_drawn = True
 
+# create container to hold the interactive and static map
 map_container = st.empty()
 
-m = folium.Map()
-Draw(draw_options={
-                "rectangle": True,
-                "polyline": False, 
-                "circle": False,
-                "circlemarker": False,
-                "marker":False,
-                "polygon":False
-            }).add_to(m)
-
-#interactive_map = st_folium(m, width=800, height=450 )
-
-# display interactive map with user input enabled
-with map_container.container():
-    interactive_map = st_folium(initialise_folium_map(), width=800, height=450, key="folium_map")
-
-
-
-# manage states
-if "area_drawn" not in st.session_state:
-    st.session_state.area_drawn = False
-
-def init_manage_states():
-    #if "area_drawn" not in st.session_state:
-        #st.session_state.area_drawn = False
-    st.write("from manage state",st.session_state.area_drawn)
-    st.write(interactive_map)
-    if (interactive_map["all_drawings"] != None):
-        st.session_state.area_drawn = True
-
-def check_drawing_status():
-    if interactive_map["all_drawings"] == None:  
-       st.session_state.area_drawn = False
-  #  elif interactive_map["all_drawings"] != None:
-   #     st.session_state.area_drawn = True
-
-st.write("on run status",st.session_state.area_drawn)
-st.write("on run int-map",interactive_map)
-
-# replace interactive map when user draws area
-if st.session_state.area_drawn == False:
-    init_manage_states()
-if st.session_state.area_drawn == True:
-    bl = interactive_map["last_active_drawing"]["geometry"]['coordinates'][0][0]
-    tr = interactive_map["last_active_drawing"]["geometry"]['coordinates'][0][2]
-
-    #replace interactive map with 'static' one
+# if first time or reset, render interactive map
+if st.session_state.initialise_map == True:
     with map_container.container():
-       static_map = st_folium(static_folium_map(interactive_map), width=800, height=450, key="folium_map232")
+        interactive_map = st_folium(render_interactive_map(), width=800, height=450, key="folium_map")
+        st.session_state.map_data = interactive_map
 
-
-    
-
-if button_reset_folium_map:
-    st.session_state.area_drawn =  False
-    check_drawing_status()
-    st.write("from reset",st.session_state.area_drawn)
-    with map_container.container():
-        interactive_map = st_folium(initialise_folium_map(), width=800, height=450, key="folium_map23")
+# if area set, replace with static map and disable set area button
+if st.session_state.initialise_map == False:
+    try:
+        with map_container.container():
+            static_map = st_folium(render_static_map_with_input(st.session_state.map_data), width=800, height=450, key="folium_map2")
+        bl = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][0]
+        tr = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][2]
+    except ValueError:
+        with map_container.container():
+            st.write("No area selected. Reset and draw rectangle, then try again")
+            static_map = st_folium(render_static_map(), width=800, height=450, key="folium_map")
+            
 
 #=========== Select style from image
 #write user instructions
-st.markdown('Select a starter style')
+st.markdown('Change starter style')
 
 #provide a caption for each style
 captions=["Dark", "Transparent", "Comic", "Flat"]
@@ -220,23 +185,26 @@ with st.form(key="Create map"):
     button_update_map = st.form_submit_button('Update')
 st.markdown('Your ridgemap design! :point_down: :tada:')
 
-# ========== Manage session states
+# ========== Display map
 if "update_map" not in st.session_state:
     st.session_state.update_map = False
 if button_update_map:
     st.session_state.update_map = True
 
-# ========== Display map
-# Create map when area selected and update with custom map styles
-if (st.session_state.update_map == False) & (interactive_map["last_active_drawing"]!= None):
+# Create map when area drawn and update with custom map styles
+if (st.session_state.update_map == False) & (st.session_state.area_drawn == True) & (st.session_state.map_data["last_active_drawing"] != None):
+    bl = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][0]
+    tr = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][2]
     style = style_selected
     fig = create_map(style, bl, tr)
     st.pyplot(fig)
-if (st.session_state.update_map) & (interactive_map["last_active_drawing"]!= None):
+elif (st.session_state.update_map) & (st.session_state.area_drawn == True) & (st.session_state.map_data["last_active_drawing"] != None):
+    bl = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][0]
+    tr = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][2]
     style = style_custom
     fig = create_map(style, bl, tr)
     st.pyplot(fig)
-elif (st.session_state.update_map) & (interactive_map["last_active_drawing"]== None):
+elif (st.session_state.update_map) & (st.session_state.area_drawn == False):
     st.markdown('**Select area first**')
     fig = "None" 
 else:
