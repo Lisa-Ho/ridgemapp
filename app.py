@@ -83,20 +83,19 @@ map_container = st.empty()
 # if first time or reset, render interactive map
 if st.session_state.initialise_map == True:
     with map_container.container():
-        interactive_map = st_folium(render_interactive_map(), width=800, height=450, key="folium_map")
+        interactive_map = st_folium(render_interactive_map(), width=800, height=450, key="folium_map1")
         st.session_state.map_data = interactive_map
 
 # if area set, replace with static map and disable set area button
 if st.session_state.initialise_map == False:
     try:
         with map_container.container():
-            static_map = st_folium(render_static_map_with_input(st.session_state.map_data), width=800, height=450, key="folium_map2")
-        bl = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][0]
-        tr = st.session_state.map_data["last_active_drawing"]["geometry"]['coordinates'][0][2]
+            static_map = st_folium(render_static_map_with_input(st.session_state.map_data), 
+            width=800, height=450, key="folium_map2")
     except ValueError:
         with map_container.container():
             st.write("No area selected. Reset and draw rectangle, then try again")
-            static_map = st_folium(render_static_map(), width=800, height=450, key="folium_map")
+            static_map = st_folium(render_static_map(), width=800, height=450, key="folium_map3")
             
 
 #=========== Select style from image
